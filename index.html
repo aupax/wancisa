@@ -2,59 +2,142 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>WANCISA</title>
-    <link rel="stylesheet" href="project/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anti Telat Sekolah - Kalkulator Waktu Berangkat</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Header -->
+    <header class="container-fluid py-3 batik-pattern">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="logo">ꦲꦤ꧀ꦠꦶꦠꦺꦭꦠ꧀ꦱꦼꦏꦺꦴꦭꦃ</div>
+                <div class="text-end">
+                    <h1 class="h3 mb-0">Anti Telat Sekolah</h1>
+                    <p class="mb-0">Kalkulator Waktu Berangkat</p>
+                </div>
+            </div>
+        </div>
+    </header>
 
-    <div class="container">
-        <h1>Wanci Sekolah<br><span>Arek Jatim Tepat Waktu</span></h1>
-
-        <div class="card">
-
-            <label>Jarak ke sekolah (km)</label>
-            <input type="number" id="jarak" min="0" step="0.1" placeholder="Contoh: 5">
-
-            <label>Transportasi</label>
-            <select id="transport">
-                <option value="motor">Motor</option>
-                <option value="sepeda">Sepeda</option>
-                <option value="jalan">Jalan Kaki</option>
-                <option value="nebeng">Nebeng Teman</option>
-            </select>
-
-            <label>Tingkat Macet</label>
-            <select id="macet">
-                <option value="sepi">Sepi</option>
-                <option value="sedang">Sedang</option>
-                <option value="macet">Rawan Macet</option>
-            </select>
-
-            <label>Snooze Alarm</label>
-            <select id="snooze">
-                <option value="0">0 kali</option>
-                <option value="1-2">1–2 kali</option>
-                <option value="3+">3+ kali</option>
-            </select>
-
-            <label>Durasi Mandi</label>
-            <select id="mandi">
-                <option value="5">5 menit</option>
-                <option value="10">10 menit</option>
-                <option value="20">20 menit</option>
-            </select>
-
-            <label>Jam Berangkat</label>
-            <input type="time" id="berangkat">
-
-            <button id="hitungBtn">Hitung Risiko</button>
+    <!-- Main Content -->
+    <main class="container my-4">
+        <!-- Start Page - Preset Selection -->
+        <div id="start-page" class="jawa-timur-theme">
+            <h2 class="text-center mb-4">Pilih Preset Perhitungan</h2>
+            <div id="preset-list" class="row g-3 mb-4">
+                <!-- Preset akan dimuat di sini -->
+            </div>
+            <div class="text-center">
+                <button id="create-new-preset" class="btn btn-lg btn-light">Buat Preset Baru</button>
+            </div>
         </div>
 
-        <div id="hasil" class="result">
-            <!-- hasil perhitungan muncul disini -->
+        <!-- Create/Edit Preset Page -->
+        <div id="preset-page" class="d-none">
+            <div class="jawa-timur-theme mb-4">
+                <h2 class="text-center mb-4" id="preset-page-title">Buat Preset Baru</h2>
+                
+                <form id="preset-form">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="preset-name" class="form-label">Nama Preset</label>
+                            <input type="text" class="form-control" id="preset-name" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="school-time" class="form-label">Waktu Masuk Sekolah</label>
+                            <input type="time" class="form-control" id="school-time" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="distance" class="form-label">Jarak (km)</label>
+                            <input type="number" class="form-control" id="distance" min="0" step="0.1" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="transportation" class="form-label">Transportasi</label>
+                            <select class="form-select" id="transportation" required>
+                                <option value="">Pilih Transportasi</option>
+                                <option value="walking">Jalan Kaki</option>
+                                <option value="bicycle">Sepeda</option>
+                                <option value="motorcycle">Motor</option>
+                                <option value="car">Mobil</option>
+                                <option value="public">Transportasi Umum</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="departure-time" class="form-label">Waktu Berangkat</label>
+                            <input type="time" class="form-control" id="departure-time" required>
+                        </div>
+                    </div>
+                    
+                    <h4 class="mt-4">Aktivitas Tambahan (Opsional)</h4>
+                    
+                    <div class="mb-3">
+                        <label for="meal-duration" class="form-label">Durasi Makan (menit)</label>
+                        <input type="number" class="form-control" id="meal-duration" min="0" value="0">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="bath-duration" class="form-label">Durasi Mandi (menit)</label>
+                        <input type="number" class="form-control" id="bath-duration" min="0" value="0">
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5>Aktivitas Kustom</h5>
+                        <button type="button" id="add-custom-activity" class="btn btn-jawa btn-sm">Tambah Aktivitas</button>
+                    </div>
+                    
+                    <div id="custom-activities">
+                        <!-- Aktivitas kustom akan ditambahkan di sini -->
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mt-4">
+                        <button type="button" id="back-to-presets" class="btn btn-light">Kembali</button>
+                        <button type="submit" class="btn btn-jawa">Simpan & Hitung</button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Results Section -->
+            <div id="results-section" class="result-box d-none">
+                <h3 class="text-center mb-4">Hasil Perhitungan</h3>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card card-jawa p-3 mb-3">
+                            <h5>Rentang Waktu Tiba</h5>
+                            <div class="time-range" id="arrival-range">-</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card card-jawa p-3 mb-3">
+                            <h5>Persentase Keterlambatan</h5>
+                            <div class="percentage-display" id="late-percentage">0%</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <canvas id="time-chart" height="100"></canvas>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <button id="edit-preset" class="btn btn-jawa">Edit Preset</button>
+                </div>
+            </div>
         </div>
-    </div>
+    </main>
 
-    <script src="project/script.js"></script>
+    <!-- Footer -->
+    <footer class="text-center">
+        <div class="container">
+            <p>&copy; 2023 Anti Telat Sekolah - Kalkulator Waktu Berangkat</p>
+            <p class="mb-0">Tema Jawa Timur - Siap Membantu Siswa Tepat Waktu</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
