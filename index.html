@@ -3,141 +3,256 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anti Telat Sekolah - Kalkulator Waktu Berangkat</title>
+    <title>Anti Telat Sekolah - Jawa Timur</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="project/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <!-- Header -->
-    <header class="container-fluid py-3 batik-pattern">
+    <header class="batik-header">
         <div class="container">
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="logo">ꦲꦤ꧀ꦠꦶꦠꦺꦭꦠ꧀ꦱꦼꦏꦺꦴꦭꦃ</div>
-                <div class="text-end">
-                    <h1 class="h3 mb-0">Anti Telat Sekolah</h1>
-                    <p class="mb-0">Kalkulator Waktu Berangkat</p>
-                </div>
+            <div class="text-center py-4">
+                <h1 class="judul-utama"><i class="fas fa-clock"></i> Anti Telat Sekolah</h1>
+                <p class="subtitle">Ben Ora Telat Sekolah, Cak!</p>
             </div>
         </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="container my-4">
-        <!-- Start Page - Preset Selection -->
-        <div id="start-page" class="jawa-timur-theme">
-            <h2 class="text-center mb-4">Pilih Preset Perhitungan</h2>
-            <div id="preset-list" class="row g-3 mb-4">
-                <!-- Preset akan dimuat di sini -->
-            </div>
-            <div class="text-center">
-                <button id="create-new-preset" class="btn btn-lg btn-light">Buat Preset Baru</button>
+    <!-- Main Container -->
+    <div class="container my-4">
+        <!-- Halaman Start -->
+        <div id="page-start" class="page active">
+            <div class="card kartu-jatim">
+                <div class="card-body text-center p-5">
+                    <i class="fas fa-graduation-cap fa-4x mb-4 text-warning"></i>
+                    <h2 class="mb-4">Pilih Preset</h2>
+                    <p class="mb-4">Pilih preset yang sudah ada atau buat preset baru</p>
+                    
+                    <div id="preset-list" class="mb-4">
+                        <!-- Preset list akan dimuat di sini -->
+                    </div>
+
+                    <button class="btn btn-primary btn-lg btn-jatim" id="btn-create-preset">
+                        <i class="fas fa-plus"></i> Buat Preset Baru
+                    </button>
+                </div>
             </div>
         </div>
 
-        <!-- Create/Edit Preset Page -->
-        <div id="preset-page" class="d-none">
-            <div class="jawa-timur-theme mb-4">
-                <h2 class="text-center mb-4" id="preset-page-title">Buat Preset Baru</h2>
-                
-                <form id="preset-form">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="preset-name" class="form-label">Nama Preset</label>
-                            <input type="text" class="form-control" id="preset-name" required>
+        <!-- Halaman Buat/Edit Preset -->
+        <div id="page-preset" class="page">
+            <div class="card kartu-jatim">
+                <div class="card-header">
+                    <h3><i class="fas fa-edit"></i> <span id="preset-title">Buat Preset Baru</span></h3>
+                </div>
+                <div class="card-body">
+                    <form id="form-preset">
+                        <input type="hidden" id="preset-id">
+                        
+                        <!-- Nama Preset -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Nama Preset</label>
+                            <input type="text" class="form-control" id="preset-name" placeholder="Contoh: Jadwal Normal" required>
                         </div>
-                        <div class="col-md-6">
-                            <label for="school-time" class="form-label">Waktu Masuk Sekolah</label>
-                            <input type="time" class="form-control" id="school-time" required>
+
+                        <!-- Jarak -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Jarak dari Rumah ke Sekolah (km)</label>
+                            <input type="number" class="form-control" id="jarak" step="0.1" min="0.1" placeholder="Contoh: 5.5" required>
                         </div>
-                        <div class="col-md-6">
-                            <label for="distance" class="form-label">Jarak (km)</label>
-                            <input type="number" class="form-control" id="distance" min="0" step="0.1" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="transportation" class="form-label">Transportasi</label>
-                            <select class="form-select" id="transportation" required>
+
+                        <!-- Transportasi -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Transportasi</label>
+                            <select class="form-select" id="transportasi" required>
                                 <option value="">Pilih Transportasi</option>
-                                <option value="walking">Jalan Kaki</option>
-                                <option value="bicycle">Sepeda</option>
-                                <option value="motorcycle">Motor</option>
-                                <option value="car">Mobil</option>
-                                <option value="public">Transportasi Umum</option>
+                                <option value="jalan_kaki">Jalan Kaki (5 km/jam)</option>
+                                <option value="sepeda">Sepeda (15 km/jam)</option>
+                                <option value="motor">Motor (40 km/jam)</option>
+                                <option value="mobil">Mobil (35 km/jam)</option>
+                                <option value="transportasi_umum">Transportasi Umum (25 km/jam)</option>
                             </select>
                         </div>
-                        <div class="col-md-6">
-                            <label for="departure-time" class="form-label">Waktu Berangkat</label>
-                            <input type="time" class="form-control" id="departure-time" required>
+
+                        <!-- Jam Berangkat -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Jam Berangkat</label>
+                            <input type="time" class="form-control" id="jam-berangkat" required>
                         </div>
-                    </div>
-                    
-                    <h4 class="mt-4">Aktivitas Tambahan (Opsional)</h4>
-                    
-                    <div class="mb-3">
-                        <label for="meal-duration" class="form-label">Durasi Makan (menit)</label>
-                        <input type="number" class="form-control" id="meal-duration" min="0" value="0">
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="bath-duration" class="form-label">Durasi Mandi (menit)</label>
-                        <input type="number" class="form-control" id="bath-duration" min="0" value="0">
-                    </div>
-                    
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5>Aktivitas Kustom</h5>
-                        <button type="button" id="add-custom-activity" class="btn btn-jawa btn-sm">Tambah Aktivitas</button>
-                    </div>
-                    
-                    <div id="custom-activities">
-                        <!-- Aktivitas kustom akan ditambahkan di sini -->
-                    </div>
-                    
-                    <div class="d-flex justify-content-between mt-4">
-                        <button type="button" id="back-to-presets" class="btn btn-light">Kembali</button>
-                        <button type="submit" class="btn btn-jawa">Simpan & Hitung</button>
-                    </div>
-                </form>
-            </div>
-            
-            <!-- Results Section -->
-            <div id="results-section" class="result-box d-none">
-                <h3 class="text-center mb-4">Hasil Perhitungan</h3>
-                
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card card-jawa p-3 mb-3">
-                            <h5>Rentang Waktu Tiba</h5>
-                            <div class="time-range" id="arrival-range">-</div>
+
+                        <!-- Waktu Masuk Sekolah -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Waktu Masuk Sekolah</label>
+                            <input type="time" class="form-control" id="waktu-masuk" required>
                         </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card card-jawa p-3 mb-3">
-                            <h5>Persentase Keterlambatan</h5>
-                            <div class="percentage-display" id="late-percentage">0%</div>
+
+                        <!-- Aktivitas Optional -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Aktivitas Optional</label>
+                            
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="checkbox-makan">
+                                    <label class="form-check-label" for="checkbox-makan">Makan</label>
+                                </div>
+                                <div class="durasi-input mt-2" id="durasi-makan-container" style="display:none;">
+                                    <input type="number" class="form-control" id="durasi-makan" placeholder="Durasi (menit)" min="1">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="checkbox-mandi">
+                                    <label class="form-check-label" for="checkbox-mandi">Mandi</label>
+                                </div>
+                                <div class="durasi-input mt-2" id="durasi-mandi-container" style="display:none;">
+                                    <input type="number" class="form-control" id="durasi-mandi" placeholder="Durasi (menit)" min="1">
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                
-                <div class="mt-4">
-                    <canvas id="time-chart" height="100"></canvas>
-                </div>
-                
-                <div class="text-center mt-4">
-                    <button id="edit-preset" class="btn btn-jawa">Edit Preset</button>
+
+                        <!-- Aktivitas Custom -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Aktivitas Custom</label>
+                            <div id="custom-activities-list"></div>
+                            <button type="button" class="btn btn-secondary btn-sm mt-2" id="btn-add-custom">
+                                <i class="fas fa-plus"></i> Tambah Aktivitas
+                            </button>
+                        </div>
+
+                        <!-- Tombol Aksi -->
+                        <div class="d-flex gap-2 justify-content-between">
+                            <button type="button" class="btn btn-secondary" id="btn-back-start">
+                                <i class="fas fa-arrow-left"></i> Kembali
+                            </button>
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-success btn-jatim">
+                                    <i class="fas fa-save"></i> Simpan & Hitung
+                                </button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
-    </main>
+
+        <!-- Halaman Hasil -->
+        <div id="page-result" class="page">
+            <div class="card kartu-jatim">
+                <div class="card-header">
+                    <h3><i class="fas fa-chart-line"></i> Hasil Perhitungan</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h5 id="result-preset-name"></h5>
+                    </div>
+
+                    <!-- Info Perjalanan -->
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3">
+                            <div class="info-box">
+                                <i class="fas fa-route"></i>
+                                <div>
+                                    <small>Jarak</small>
+                                    <h5 id="result-jarak"></h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="info-box">
+                                <i class="fas fa-motorcycle"></i>
+                                <div>
+                                    <small>Transportasi</small>
+                                    <h5 id="result-transportasi"></h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="info-box">
+                                <i class="fas fa-clock"></i>
+                                <div>
+                                    <small>Jam Berangkat</small>
+                                    <h5 id="result-jam-berangkat"></h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="info-box">
+                                <i class="fas fa-school"></i>
+                                <div>
+                                    <small>Waktu Masuk Sekolah</small>
+                                    <h5 id="result-waktu-masuk"></h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Estimasi Waktu -->
+                    <div class="card mb-4 estimasi-card">
+                        <div class="card-body">
+                            <h5 class="mb-3"><i class="fas fa-hourglass-half"></i> Estimasi Waktu Tiba</h5>
+                            <div class="row">
+                                <div class="col-md-6 text-center mb-3">
+                                    <div class="time-badge time-tercepat">
+                                        <small>Tercepat</small>
+                                        <h3 id="result-tercepat"></h3>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 text-center mb-3">
+                                    <div class="time-badge time-terlama">
+                                        <small>Terlama</small>
+                                        <h3 id="result-terlama"></h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Persentase Telat -->
+                    <div class="card mb-4" id="persentase-card">
+                        <div class="card-body text-center">
+                            <h5 class="mb-3"><i class="fas fa-percentage"></i> Status Keterlambatan</h5>
+                            <div class="persentase-display" id="persentase-display">
+                                <h1 id="result-persentase" class="display-1"></h1>
+                                <p id="result-status" class="fs-4"></p>
+                            </div>
+                            <canvas id="chart-persentase" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Rincian Aktivitas -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="mb-3"><i class="fas fa-list"></i> Rincian Aktivitas</h5>
+                            <div id="result-activities"></div>
+                        </div>
+                    </div>
+
+                    <!-- Tombol Aksi -->
+                    <div class="d-flex gap-2 justify-content-between">
+                        <button class="btn btn-secondary" id="btn-back-preset">
+                            <i class="fas fa-edit"></i> Edit Preset
+                        </button>
+                        <button class="btn btn-primary btn-jatim" id="btn-back-home">
+                            <i class="fas fa-home"></i> Kembali ke Beranda
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Footer -->
-    <footer class="text-center">
-        <div class="container">
-            <p>&copy; 2023 Anti Telat Sekolah - Kalkulator Waktu Berangkat</p>
-            <p class="mb-0">Tema Jawa Timur - Siap Membantu Siswa Tepat Waktu</p>
+    <footer class="batik-footer mt-5">
+        <div class="container text-center py-3">
+            <p class="mb-0">© 2024 Anti Telat Sekolah - Jawa Timur Edition</p>
         </div>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="project/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="script.js"></script>
 </body>
-</html>
+    </html>
