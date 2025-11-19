@@ -1,4 +1,4 @@
-# aupa-festika
-testing repo for festika's project deployment 
+WANCISA - Wancine Sekolah
+Buat Jadwal & Tracking Perjalananmu Berangkat Sekolah 
 
-live demo: https://aupa-festika.vercel.app/
+live demo: https://aupax.github.io/wancisa/
