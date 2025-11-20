@@ -36,10 +36,53 @@ main { flex:1; }
 
 .btn-fresh:hover, .btn-primary:hover { background: var(--primary-dark) !important; transform: translateY(-2px); box-shadow: var(--shadow-md); }
 
-/* JADWAL CARD */
-.jadwal-card { padding: 0.9rem; background: var(--card-bg); border-radius: 12px; border: 1px solid #E5E7EB; box-shadow: var(--shadow-sm); transition: 0.2s ease; width: 100%; }
-.jadwal-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--primary); }
-.jadwal-name { font-size: 1.05rem; font-weight: 600; color: var(--primary-dark); }
+/* JADWAL CARD - Updated */
+.jadwal-card { 
+    padding: 0.9rem; 
+    background: var(--card-bg); 
+    border-radius: 12px; 
+    border: 1px solid #E5E7EB; 
+    box-shadow: var(--shadow-sm); 
+    transition: 0.2s ease; 
+    width: 100%; 
+    cursor: pointer;
+}
+.jadwal-card:hover { 
+    transform: translateY(-3px); 
+    box-shadow: var(--shadow-md); 
+    border-color: var(--primary); 
+}
+.jadwal-name { 
+    font-size: 1.05rem; 
+    font-weight: 600; 
+    color: var(--primary-dark); 
+    margin-bottom: 0.3rem;
+}
+.jadwal-info { 
+    color: var(--text-muted); 
+    font-size: 0.9rem; 
+}
+
+/* Jadwal Actions - Updated */
+.jadwal-actions {
+    display: flex;
+    gap: 0.3rem;
+    flex-shrink: 0;
+}
+
+.jadwal-actions .btn {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+}
+
+/* Weekly Chart Styling */
+#weekly-chart {
+    max-height: 250px;
+}
 .jadwal-info { color: var(--text-muted); font-size: 0.9rem; }
 
 /* ACTIVITY ITEMS */
