@@ -1,624 +1,584 @@
-// script.js
-
-// State Management
-let currentjadwalId = null;
-let customActivityCounter = 0;
-let chartInstance = null;
-
-// Kecepatan transportasi (km/jam)
-const KECEPATAN_TRANSPORTASI = {
-    'jalan_kaki': 20,
-    'sepeda': 35,
-    'motor': 60,
-    'mobil': 55,
-    'transportasi_umum': 45
-};
-
-const NAMA_TRANSPORTASI = {
-    'jalan_kaki': 'Jalan Kaki',
-    'sepeda': 'Sepeda',
-    'motor': 'Motor',
-    'mobil': 'Mobil',
-    'transportasi_umum': 'Transportasi Umum'
-};
-
-// Inisialisasi
-$(document).ready(function() {
-    initializeApp();
-    setupEventListeners();
-});
-
-// Inisialisasi Aplikasi
-function initializeApp() {
-    console.log('Initializing app...');
-    showWelcomePopup();
-    loadjadwals();
+:root { 
+  --primary: #3A7AFE;
+  --primary-dark: #1F5BDA;
+  --secondary: #9EC9FF;
+  --bg: linear-gradient(135deg, #e6f0ff 0%, #f5e6d9 100%);
+  --card-bg: rgba(255, 255, 255, 0.85);
+  --text-dark: #2C1810;
+  --text-muted: #6B7280;
+  --radius: 14px;
+  --shadow-sm: 0 4px 12px rgba(0,0,0,0.06);
+  --shadow-md: 0 6px 20px rgba(0,0,0,0.08);
+  --neon-blue: #4FC3F7;
+  --neon-brown: #D7CCC8;
+  --light-brown: #BCAAA4;
+  --light-blue: #B3E5FC;
 }
 
-// Fungsi untuk menampilkan welcome popup
-function showWelcomePopup() {
-    // Cek jika user sudah pernah menutup popup
-    const hasSeenPopup = localStorage.getItem('wancisa_hasSeenPopup');
-    
-    console.log('showWelcomePopup called, hasSeenPopup:', hasSeenPopup);
-    
-    if (!hasSeenPopup) {
-        $('#welcome-popup').show();
-        $('body').addClass('popup-active');
-        console.log('Welcome popup shown');
-        
-        // Setup event listeners khusus untuk popup setelah ditampilkan
-        setTimeout(setupPopupEventListeners, 100);
-    } else {
-        // Langsung tampilkan halaman start jika sudah pernah melihat popup
-        console.log('User has seen popup before, going directly to start page');
-        showPage('page-start');
-        createWeeklyChart();
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; }
+
+html, body { height: 100%; }
+body { 
+  background: var(--bg); 
+  color: var(--text-dark); 
+  display:flex; 
+  flex-direction:column; 
+  min-height:100vh;
+  position: relative;
+}
+
+/* Background dengan motif batik PARANG yang elegan */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><defs><pattern id="parang" patternUnits="userSpaceOnUse" width="40" height="40"><path d="M0,0 L40,40 M10,0 L40,30 M0,10 L30,40 M20,0 L40,20 M0,20 L20,40" stroke="%23BCAAA4" stroke-width="1.5" stroke-opacity="0.08" fill="none"/></pattern></defs><rect width="200" height="200" fill="url(%23parang)"/></svg>');
+  background-size: 200px;
+  z-index: -1;
+  opacity: 0.4;
+}
+
+/* Motif batik tambahan - CEplok */
+body::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120"><defs><pattern id="ceplok" patternUnits="userSpaceOnUse" width="60" height="60"><g fill="%23BCAAA4" fill-opacity="0.05"><rect x="0" y="0" width="20" height="20"/><rect x="40" y="0" width="20" height="20"/><rect x="20" y="20" width="20" height="20"/><rect x="0" y="40" width="20" height="20"/><rect x="40" y="40" width="20" height="20"/></g></pattern></defs><rect width="120" height="120" fill="url(%23ceplok)"/></svg>');
+  background-size: 120px;
+  z-index: -1;
+  opacity: 0.3;
+}
+
+main { flex:1; }
+
+/* POPUP WELCOME STYLES */
+.welcome-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.popup-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.popup-content {
+    position: relative;
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 2rem;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--neon-blue);
+    animation: popupSlideIn 0.4s ease-out;
+    backdrop-filter: blur(10px);
+    /* Motif batik LERENG untuk popup */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><defs><pattern id="lereng" patternUnits="userSpaceOnUse" width="25" height="25"><path d="M0,0 L25,25 M12.5,0 L25,12.5 M0,12.5 L12.5,25" stroke="%23BCAAA4" stroke-width="0.8" stroke-opacity="0.06" fill="none"/></pattern></defs><rect width="100" height="100" fill="url(%23lereng)"/></svg>');
+}
+
+#start-button {
+    cursor: pointer;
+    position: relative;
+    z-index: 10001;
+}
+
+@keyframes popupSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
     }
 }
 
-// Fungsi untuk menutup welcome popup
-function closeWelcomePopup() {
-    $('#welcome-popup').fadeOut(300);
-    $('body').removeClass('popup-active');
-    
-    // Simpan status bahwa user sudah melihat popup
-    localStorage.setItem('wancisa_hasSeenPopup', 'true');
-    
-    // Tampilkan halaman start
-    showPage('page-start');
-    createWeeklyChart();
+.popup-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
 }
 
-// Fungsi khusus untuk setup event listener popup
-function setupPopupEventListeners() {
-    console.log('Setting up popup-specific event listeners...');
-    
-    // Hapus event listener lama untuk menghindari duplikasi
-    $('#start-button').off('click');
-    $('.popup-overlay').off('click');
-    
-    // Tambah event listener langsung ke elemen
-    $('#start-button').click(function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log('Start button clicked - DIRECT');
-        closeWelcomePopup();
-    });
-    
-    $('.popup-overlay').click(function(e) {
-        console.log('Overlay clicked - DIRECT');
-        closeWelcomePopup();
-    });
-    
-    console.log('Popup event listeners setup complete');
+.popup-logo {
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    border: 2px solid var(--neon-blue);
+    box-shadow: 0 0 10px rgba(79, 195, 247, 0.5);
+    /* Motif batik KAWUNG untuk logo */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"><g fill="%23BCAAA4" fill-opacity="0.15"><circle cx="20" cy="20" r="6"/><circle cx="60" cy="20" r="6"/><circle cx="20" cy="60" r="6"/><circle cx="60" cy="60" r="6"/><circle cx="40" cy="40" r="8"/></g></svg>');
 }
 
-// Setup Event Listeners
-function setupEventListeners() {
-    console.log('Setting up event listeners...');
-    
-    // Navigasi
-    $('#btn-create-jadwal').click(function() {
-        resetjadwalForm();
-        showPage('page-jadwal');
-    });
-
-    $('#btn-back-start').click(function() {
-        showPage('page-start');
-    });
-
-    $('#btn-back-home').click(function() {
-        showPage('page-start');
-        loadjadwals();
-    });
-
-    $('#btn-back-jadwal').click(function() {
-        showPage('page-jadwal');
-    });
-
-    // Form submission
-    $('#form-jadwal').submit(function(e) {
-        e.preventDefault();
-        savejadwalAndCalculate();
-    });
-
-    // Toggle custom kecepatan
-    $('#transportasi').change(function() {
-        if ($(this).val() === 'custom') {
-            $('#custom-kecepatan-container').show();
-            $('#custom-kecepatan').prop('required', true);
-        } else {
-            $('#custom-kecepatan-container').hide();
-            $('#custom-kecepatan').prop('required', false);
-            $('#custom-kecepatan').val('');
-        }
-    });
-
-    // Tambah aktivitas custom
-    $('#btn-add-custom').click(function() {
-        addCustomActivity();
-    });
-
-    // === PERBAIKAN: EVENT LISTENER WELCOME POPUP YANG LEBIH ROBUST ===
-    
-    // Gunakan event delegation untuk elemen yang mungkin dibuat ulang
-    $(document).on('click', '#start-button', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log('Start button clicked - DELEGATION');
-        closeWelcomePopup();
-    });
-    
-    $(document).on('click', '.popup-overlay', function(e) {
-        console.log('Overlay clicked - DELEGATION');
-        closeWelcomePopup();
-    });
-    
-    // Close with ESC key
-    $(document).on('keyup', function(e) {
-        if (e.key === "Escape" && $('#welcome-popup').is(':visible')) {
-            console.log('ESC pressed - DELEGATION');
-            closeWelcomePopup();
-        }
-    });
-    
-    console.log('Event listeners setup complete');
+.popup-header h2 {
+    color: var(--primary-dark);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
 }
 
-// Load jadwals dari localStorage
-function loadjadwals() {
-    const jadwals = getjadwals();
-    const jadwalList = $('#jadwal-list');
-    jadwalList.empty();
-
-    if (jadwals.length === 0) {
-        jadwalList.html('<p class="text-muted">Belum ada jadwal tersimpan</p>');
-        return;
-    }
-
-    jadwals.forEach(function(jadwal) {
-        // Ubah struktur jadwal card dengan tombol di kanan
-        const jadwalCard = $(`
-            <div class="jadwal-card">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div class="flex-grow-1">
-                        <div class="jadwal-name">${jadwal.name}</div>
-                        <div class="jadwal-info">
-                            <i class="fas fa-route"></i> ${jadwal.jarak} km | 
-                            <i class="fas fa-motorcycle"></i> ${NAMA_TRANSPORTASI[jadwal.transportasi]} | 
-                            <i class="fas fa-clock"></i> Berangkat ${jadwal.jamBerangkat}
-                        </div>
-                    </div>
-                    <div class="jadwal-actions ms-3">
-                        <button class="btn btn-sm btn-outline-warning btn-edit-jadwal" data-id="${jadwal.id}" title="Edit Jadwal">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger btn-delete-jadwal" data-id="${jadwal.id}" title="Hapus Jadwal">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `);
-
-        // Click untuk kalkulasi langsung
-        jadwalCard.click(function(e) {
-            if (!$(e.target).closest('.jadwal-actions').length) {
-                loadjadwal(jadwal.id);
-                calculateAndShowResult();
-            }
-        });
-
-        jadwalList.append(jadwalCard);
-    });
-
-    // Event untuk edit dan hapus
-    $('.btn-edit-jadwal').click(function(e) {
-        e.stopPropagation();
-        const id = $(this).data('id');
-        loadjadwal(id);
-        showPage('page-jadwal');
-    });
-
-    $('.btn-delete-jadwal').click(function(e) {
-        e.stopPropagation();
-        const id = $(this).data('id');
-        if (confirm('Yakin ingin menghapus jadwal ini?')) {
-            deletejadwal(id);
-            loadjadwals();
-        }
-    });
+.popup-subtitle {
+    color: var(--text-muted);
+    font-size: 1rem;
 }
 
-// Fungsi baru untuk membuat chart mingguan
-function createWeeklyChart() {
-    const ctx = document.getElementById('weekly-chart');
-    
-    if (!ctx) return;
-    
-    // Hancurkan chart instance lama jika ada
-    if (window.weeklyChartInstance) {
-        window.weeklyChartInstance.destroy();
+.popup-body {
+    margin-bottom: 2rem;
+}
+
+.feature-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.7);
+    transition: 0.2s ease;
+    border-left: 3px solid var(--neon-blue);
+    /* Motif batik garis diagonal untuk feature items */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30"><path d="M0,0 L30,30 M15,0 L30,15 M0,15 L15,30" stroke="%23BCAAA4" stroke-width="0.5" stroke-opacity="0.05" fill="none"/></svg>');
+}
+
+.feature-item:hover {
+    transform: translateX(5px);
+    background: rgba(179, 229, 252, 0.3);
+    box-shadow: 0 0 8px rgba(79, 195, 247, 0.3);
+}
+
+.feature-icon {
+    font-size: 1.5rem;
+    color: var(--primary);
+    margin-top: 0.25rem;
+    flex-shrink: 0;
+}
+
+.feature-text h5 {
+    color: var(--text-dark);
+    margin-bottom: 0.25rem;
+    font-size: 0.95rem;
+}
+
+.feature-text p {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-bottom: 0;
+}
+
+.popup-footer {
+    text-align: center;
+}
+
+.btn-start {
+    background: var(--primary) !important;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    transition: 0.3s ease;
+    margin-bottom: 1rem;
+    box-shadow: 0 0 15px rgba(79, 195, 247, 0.5);
+}
+
+.btn-start:hover {
+    background: var(--primary-dark) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 0 20px rgba(79, 195, 247, 0.8);
+}
+
+.popup-note {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-bottom: 0;
+}
+
+/* Body blur effect when popup is active */
+body.popup-active {
+    overflow: hidden;
+}
+
+body.popup-active main,
+body.popup-active header,
+body.popup-active footer {
+    filter: blur(5px);
+    pointer-events: none;
+    user-select: none;
+}
+
+/* Responsive popup */
+@media (max-width: 576px) {
+    .popup-content {
+        padding: 1.5rem;
+        margin: 1rem;
     }
     
-    // Data dummy untuk contoh (dalam aplikasi nyata, data ini bisa diambil dari localStorage)
-    const days = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
-    const latePercentages = [15, 25, 10, 30, 5, 0, 20]; // Data contoh
-    
-    // Hitung rata-rata
-    const average = latePercentages.reduce((a, b) => a + b, 0) / latePercentages.length;
-    
-    // Simpan instance chart di window object
-    window.weeklyChartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: days,
-            datasets: [{
-                label: 'Persentase Telat (%)',
-                data: latePercentages,
-                backgroundColor: [
-                    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', 
-                    '#9966FF', '#FF9F40', '#C9CBCF'
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    display: false
-                },
-                title: {
-                    display: true,
-                    text: `Rata-rata: ${average.toFixed(1)}%`
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 100,
-                    title: {
-                        display: true,
-                        text: 'Persentase Telat (%)'
-                    }
-                }
-            }
-        }
-    });
-}
-
-// Get jadwals dari localStorage
-function getjadwals() {
-    const jadwals = localStorage.getItem('antiTelatjadwals');
-    return jadwals ? JSON.parse(jadwals) : [];
-}
-
-// Save jadwal ke localStorage
-function savejadwal(jadwalData) {
-    let jadwals = getjadwals();
-    
-    if (jadwalData.id) {
-        // Update existing
-        jadwals = jadwals.map(p => p.id === jadwalData.id ? jadwalData : p);
-    } else {
-        // Create new
-        jadwalData.id = 'jadwal_' + Date.now();
-        jadwals.push(jadwalData);
+    .popup-logo {
+        width: 60px;
+        height: 60px;
     }
     
-    localStorage.setItem('antiTelatjadwals', JSON.stringify(jadwals));
-    return jadwalData.id;
-}
-
-// Delete jadwal
-function deletejadwal(id) {
-    let jadwals = getjadwals();
-    jadwals = jadwals.filter(p => p.id !== id);
-    localStorage.setItem('antiTelatjadwals', JSON.stringify(jadwals));
-}
-
-// Load jadwal ke Form
-function loadjadwal(id) {
-    const jadwals = getjadwals();
-    const jadwal = jadwals.find(p => p.id === id);
-    
-    if (!jadwal) return;
-    
-    currentjadwalId = id;
-    $('#jadwal-id').val(id);
-    $('#jadwal-name').val(jadwal.name);
-    $('#jarak').val(jadwal.jarak);
-    $('#transportasi').val(jadwal.transportasi);
-    $('#tingkat-kemacetan').val(jadwal.tingkatKemacetan);
-    $('#jam-berangkat').val(jadwal.jamBerangkat);
-    $('#waktu-masuk').val(jadwal.waktuMasuk);
-    
-    // Load custom kecepatan jika ada
-    if (jadwal.transportasi === 'custom') {
-        $('#custom-kecepatan-container').show();
-        $('#custom-kecepatan').val(jadwal.customKecepatan);
+    .popup-header h2 {
+        font-size: 1.4rem;
     }
     
-    // Load custom activities
-    $('#custom-activities-list').empty();
-    customActivityCounter = 0;
-    if (jadwal.customActivities && jadwal.customActivities.length > 0) {
-        jadwal.customActivities.forEach(function(activity) {
-            addCustomActivity(activity.name, activity.duration);
-        });
+    .feature-item {
+        gap: 0.75rem;
     }
     
-    $('#jadwal-title').text('Edit jadwal: ' + jadwal.name);
-}
-
-// Reset Form
-function resetjadwalForm() {
-    currentjadwalId = null;
-    $('#jadwal-id').val('');
-    $('#form-jadwal')[0].reset();
-    $('#custom-kecepatan-container').hide();
-    $('#custom-activities-list').empty();
-    customActivityCounter = 0;
-    $('#jadwal-title').text('Buat jadwal Baru');
-}
-
-// Add Custom Activity
-function addCustomActivity(name = '', duration = '') {
-    customActivityCounter++;
-    const activityId = 'custom_' + customActivityCounter;
-    
-    const activityCard = $(`
-        <div class="custom-activity-card" data-id="${activityId}">
-            <button type="button" class="btn btn-sm btn-danger btn-remove-activity">
-                <i class="fas fa-times"></i>
-            </button>
-            <div class="row">
-                <div class="col-md-6 mb-2">
-                    <label class="form-label">Nama Aktivitas</label>
-                    <input type="text" class="form-control custom-activity-name" placeholder="Contoh: Sarapan" value="${name}" required>
-                </div>
-                <div class="col-md-6 mb-2">
-                    <label class="form-label">Durasi (menit)</label>
-                    <input type="number" class="form-control custom-activity-duration" placeholder="Contoh: 15" min="1" value="${duration}" required>
-                </div>
-            </div>
-        </div>
-    `);
-    
-    activityCard.find('.btn-remove-activity').click(function() {
-        activityCard.remove();
-    });
-    
-    $('#custom-activities-list').append(activityCard);
-}
-
-// Collect Custom Activities
-function collectCustomActivities() {
-    const activities = [];
-    $('.custom-activity-card').each(function() {
-        const name = $(this).find('.custom-activity-name').val();
-        const duration = parseInt($(this).find('.custom-activity-duration').val());
-        if (name && duration) {
-            activities.push({ name, duration });
-        }
-    });
-    return activities;
-}
-
-// Save jadwal and Calculate
-function savejadwalAndCalculate() {
-    const jadwalData = {
-        id: $('#jadwal-id').val() || null,
-        name: $('#jadwal-name').val(),
-        jarak: parseFloat($('#jarak').val()),
-        transportasi: $('#transportasi').val(),
-        customKecepatan: $('#transportasi').val() === 'custom' ? parseInt($('#custom-kecepatan').val()) || 0 : 0,
-        tingkatKemacetan: $('#tingkat-kemacetan').val(),
-        jamBerangkat: $('#jam-berangkat').val(),
-        waktuMasuk: $('#waktu-masuk').val(),
-        customActivities: collectCustomActivities()
-    };
-    
-    currentjadwalId = savejadwal(jadwalData);
-    calculateAndShowResult();
-}
-
-// Calculate and Show Result
-function calculateAndShowResult() {
-    const jadwals = getjadwals();
-    const jadwal = jadwals.find(p => p.id === currentjadwalId);
-    
-    if (!jadwal) return;
-    
-    // Hitung durasi perjalanan (dalam menit)
-    let kecepatan;
-    if (jadwal.transportasi === 'custom') {
-        kecepatan = jadwal.customKecepatan;
-    } else {
-        kecepatan = KECEPATAN_TRANSPORTASI[jadwal.transportasi];
+    .feature-icon {
+        font-size: 1.3rem;
     }
-    
-    let waktuPerjalanan = (jadwal.jarak / kecepatan) * 60;
-    
-    // Tambahan waktu berdasarkan tingkat kemacetan
-    const faktorKemacetan = {
-        'sepi': 1.0,
-        'sedang': 1.15,
-        'macet': 1.3
-    };
-    
-    waktuPerjalanan *= faktorKemacetan[jadwal.tingkatKemacetan];
-    
-    // Hitung total aktivitas custom
-    let totalAktivitas = 0;
-    jadwal.customActivities.forEach(act => totalAktivitas += act.duration);
-    
-    // Estimasi waktu tercepat (hanya perjalanan)
-    const waktuTercepat = waktuPerjalanan;
-    
-    // Estimasi waktu terlama (perjalanan + semua aktivitas + buffer 20%)
-    const waktuTerlama = waktuPerjalanan + totalAktivitas + (waktuPerjalanan * 0.2);
-    
-    // Parse waktu
-    const [jamBerangkat, menitBerangkat] = jadwal.jamBerangkat.split(':').map(Number);
-    const [jamMasuk, menitMasuk] = jadwal.waktuMasuk.split(':').map(Number);
-    
-    // Hitung waktu tiba
-    const tibaTercepat = addMinutes(jamBerangkat, menitBerangkat, waktuTercepat);
-    const tibaTerlama = addMinutes(jamBerangkat, menitBerangkat, waktuTerlama);
-    
-    // Hitung persentase telat
-    const waktuMasukMenit = jamMasuk * 60 + menitMasuk;
-    const tibaTercepatMenit = tibaTercepat.jam * 60 + tibaTercepat.menit;
-    const tibaTerlamaMenit = tibaTerlama.jam * 60 + tibaTerlama.menit;
-    
-    let persentaseTelat = 0;
-    let status = '';
-    let statusClass = '';
-    
-    if (tibaTerlamaMenit <= waktuMasukMenit) {
-        // Aman
-        const selisih = waktuMasukMenit - tibaTercepatMenit;
-        persentaseTelat = Math.max(0, Math.round(100 - (selisih / 60) * 20));
-        status = 'Aman! Kemungkinan telat sangat kecil 🎉';
-        statusClass = 'status-aman';
-    } else if (tibaTercepatMenit <= waktuMasukMenit) {
-        // Hati-hati
-        const keterlambatan = tibaTerlamaMenit - waktuMasukMenit;
-        persentaseTelat = Math.min(99, Math.round(50 + (keterlambatan / 30) * 25));
-        status = 'Hati-hati! Ada risiko telat ⚠️';
-        statusClass = 'status-hati-hati';
-    } else {
-        // Telat
-        persentaseTelat = 100;
-        status = 'Telat! Berangkat lebih awal ❌';
-        statusClass = 'status-telat';
-    }
-    
-    // Update UI
-    $('#result-jadwal-name').text(jadwal.name);
-    $('#result-jarak').text(jadwal.jarak + ' km');
-    
-    // Tampilkan transportasi atau kecepatan custom
-    if (jadwal.transportasi === 'custom') {
-        $('#result-transportasi').text('Custom: ' + jadwal.customKecepatan + ' km/jam');
-    } else {
-        $('#result-transportasi').text(NAMA_TRANSPORTASI[jadwal.transportasi]);
-    }
-    
-    // Tampilkan tingkat kemacetan
-    const namaKemacetan = {
-        'sepi': 'Sepi',
-        'sedang': 'Sedang',
-        'macet': 'Macet'
-    };
-    $('#result-kemacetan').text(namaKemacetan[jadwal.tingkatKemacetan]);
-    
-    $('#result-jam-berangkat').text(jadwal.jamBerangkat);
-    $('#result-waktu-masuk').text(jadwal.waktuMasuk);
-    
-    $('#result-tercepat').text(formatTime(tibaTercepat.jam, tibaTercepat.menit));
-    $('#result-terlama').text(formatTime(tibaTerlama.jam, tibaTerlama.menit));
-    
-    $('#result-persentase').text(persentaseTelat + '%');
-    $('#result-status').text(status);
-    $('#result-persentase').removeClass('status-aman status-hati-hati status-telat').addClass(statusClass);
-    
-    // Update card color
-    $('#persentase-card').removeClass('border-success border-warning border-danger');
-    if (statusClass === 'status-aman') {
-        $('#persentase-card').addClass('border-success');
-    } else if (statusClass === 'status-hati-hati') {
-        $('#persentase-card').addClass('border-warning');
-    } else {
-        $('#persentase-card').addClass('border-danger');
-    }
-    
-    // Rincian aktivitas
-    let activitiesHtml = '';
-    activitiesHtml += `<div class="activity-item"><strong>Perjalanan:</strong> ${Math.round(waktuPerjalanan)} menit (${namaKemacetan[jadwal.tingkatKemacetan]})</div>`;
-    jadwal.customActivities.forEach(act => {
-        activitiesHtml += `<div class="activity-item"><strong>${act.name}:</strong> ${act.duration} menit</div>`;
-    });
-    $('#result-activities').html(activitiesHtml);
-    
-    // Create chart
-    createPercentageChart(persentaseTelat, statusClass);
-    
-    showPage('page-result');
 }
 
-// Helper: Add Minutes to Time
-function addMinutes(jam, menit, tambahMenit) {
-    let totalMenit = jam * 60 + menit + tambahMenit;
-    const newJam = Math.floor(totalMenit / 60) % 24;
-    const newMenit = Math.round(totalMenit % 60);
-    return { jam: newJam, menit: newMenit };
+/* HEADER */
+.site-header { 
+  background: linear-gradient(135deg, rgba(179, 229, 252, 0.9) 0%, rgba(215, 204, 200, 0.9) 100%); 
+  border-bottom: 1px solid var(--neon-blue); 
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  /* Motif batik SIDOMUKTI untuk header */
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="150" height="80" viewBox="0 0 150 80"><defs><pattern id="sidomukti" patternUnits="userSpaceOnUse" width="50" height="40"><g fill="%23BCAAA4" fill-opacity="0.08"><path d="M10,10 Q25,5 40,10 Q50,20 40,30 Q25,35 10,30 Q0,20 10,10 Z M30,15 Q40,10 45,15 Q50,25 45,35 Q40,40 30,35 Q20,30 25,25 Q30,20 30,15 Z"/></g></pattern></defs><rect width="150" height="80" fill="url(%23sidomukti)"/></svg>');
 }
 
-// Helper: Format Time
-function formatTime(jam, menit) {
-    return String(jam).padStart(2, '0') + ':' + String(menit).padStart(2, '0');
+.site-header::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
+  box-shadow: 0 0 10px var(--neon-blue);
 }
 
-// Create Percentage Chart
-function createPercentageChart(percentage, statusClass) {
-    const ctx = document.getElementById('chart-persentase');
-    
-    if (!ctx) return;
-    
-    // Hancurkan chart instance lama jika ada
-    if (chartInstance) {
-        chartInstance.destroy();
-        chartInstance = null;
-    }
-    
-    let color = '';
-    if (statusClass === 'status-aman') {
-        color = '#28a745';
-    } else if (statusClass === 'status-hati-hati') {
-        color = '#ffc107';
-    } else {
-        color = '#dc3545';
-    }
-    
-    chartInstance = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Risiko Telat', 'Aman'],
-            datasets: [{
-                data: [percentage, 100 - percentage],
-                backgroundColor: [color, '#e9ecef'],
-                borderWidth: 0
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'bottom'
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return context.label + ': ' + context.parsed + '%';
-                        }
-                    }
-                }
-            }
-        }
-    });
+.header-inner { gap: 12px; }
+.school-logo { 
+  width: 64px; 
+  height: 64px; 
+  border-radius: 10px; 
+  object-fit: contain; 
+  background: transparent; 
+  border: 2px solid var(--neon-brown);
+  box-shadow: 0 0 8px rgba(188, 170, 164, 0.5);
+  /* Motif batik TRUNTUM untuk logo */
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><g fill="none" stroke="%23BCAAA4" stroke-width="1" stroke-opacity="0.2"><circle cx="32" cy="32" r="15"/><circle cx="32" cy="32" r="10"/><circle cx="32" cy="32" r="5"/><path d="M22,22 L42,42 M22,42 L42,22"/></g></svg>');
+}
+.judul-utama { 
+  font-size: 1.6rem; 
+  font-weight: 700; 
+  color: var(--primary-dark); 
+  margin-bottom:0.15rem; 
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+.subtitle { 
+  font-size: 0.95rem; 
+  color: var(--text-muted); 
 }
 
-// Show Page
-function showPage(pageId) {
-    $('.page').removeClass('active');
-    $('#' + pageId).addClass('active');
-    
-    // Scroll to top
-    window.scrollTo(0, 0);
+/* CARD MODERN */
+.kartu-fresh { 
+  max-width: 820px; 
+  margin: 0 auto; 
+  background: var(--card-bg); 
+  border-radius: var(--radius); 
+  padding: 1rem; 
+  border: 1px solid var(--neon-brown);
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(5px);
+  position: relative;
+  overflow: hidden;
+  /* Motif batik MEGA MENDUNG untuk kartu */
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120"><defs><pattern id="megamendung" patternUnits="userSpaceOnUse" width="60" height="40"><path d="M10,20 Q30,5 50,20 Q60,30 50,40 Q30,55 10,40 Q0,30 10,20 Z M35,25 Q45,20 50,25 Q55,30 50,35 Q45,40 35,35 Q30,30 35,25 Z" fill="%23BCAAA4" fill-opacity="0.04" stroke="%23BCAAA4" stroke-width="0.5" stroke-opacity="0.02"/></pattern></defs><rect width="120" height="120" fill="url(%23megamendung)"/></svg>');
 }
+
+.kartu-fresh::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--neon-blue), var(--neon-brown));
+  box-shadow: 0 0 10px rgba(79, 195, 247, 0.5);
+}
+
+.card-header { 
+  background: transparent !important; 
+  border-bottom: none !important; 
+  padding-bottom: 0 !important; 
+}
+.card-header h3 { 
+  color: var(--primary-dark); 
+  font-weight: 600; 
+}
+
+/* BUTTON MODERN */
+.btn-fresh, .btn-jatim, .btn-primary { 
+  background: var(--primary) !important; 
+  border: none; 
+  padding: 0.6rem 1.2rem; 
+  border-radius: 10px; 
+  font-weight: 600; 
+  color: white !important; 
+  transition: 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-fresh::after, .btn-primary::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  transition: 0.5s;
+}
+
+.btn-fresh:hover::after, .btn-primary:hover::after {
+  left: 100%;
+}
+
+.btn-fresh:hover, .btn-primary:hover { 
+  background: var(--primary-dark) !important; 
+  transform: translateY(-2px); 
+  box-shadow: 0 5px 15px rgba(79, 195, 247, 0.4);
+}
+
+/* JADWAL CARD */
+.jadwal-card { 
+    padding: 0.9rem; 
+    background: var(--card-bg); 
+    border-radius: 12px; 
+    border: 1px solid var(--neon-brown); 
+    box-shadow: var(--shadow-sm); 
+    transition: 0.2s ease; 
+    width: 100%; 
+    cursor: pointer;
+    position: relative;
+    backdrop-filter: blur(3px);
+    /* Motif batik SIMBUT untuk card jadwal */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"><defs><pattern id="simbut" patternUnits="userSpaceOnUse" width="40" height="40"><path d="M10,10 L30,30 M20,10 L30,20 M10,20 L20,30 M15,15 L25,25" stroke="%23BCAAA4" stroke-width="0.8" stroke-opacity="0.06" fill="none"/></pattern></defs><rect width="80" height="80" fill="url(%23simbut)"/></svg>');
+}
+.jadwal-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--neon-blue), var(--neon-brown));
+  border-radius: 12px 12px 0 0;
+}
+.jadwal-card:hover { 
+    transform: translateY(-3px); 
+    box-shadow: 0 8px 25px rgba(79, 195, 247, 0.3); 
+    border-color: var(--neon-blue); 
+}
+.jadwal-name { 
+    font-size: 1.05rem; 
+    font-weight: 600; 
+    color: var(--primary-dark); 
+    margin-bottom: 0.3rem;
+}
+.jadwal-info { 
+    color: var(--text-muted); 
+    font-size: 0.9rem; 
+}
+
+/* Jadwal Actions */
+.jadwal-actions {
+    display: flex;
+    gap: 0.3rem;
+    flex-shrink: 0;
+}
+
+.jadwal-actions .btn {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+}
+
+/* Weekly Chart Styling */
+#weekly-chart {
+    max-height: 250px;
+}
+
+/* ACTIVITY ITEMS */
+#result-activities .activity-item { 
+    background: rgba(255, 255, 255, 0.7); 
+    border-left: 4px solid var(--neon-blue); 
+    border-radius: 8px; 
+    padding: 0.75rem; 
+    margin-bottom: 0.6rem; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    /* Motif batik untuk activity items */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="50" height="30" viewBox="0 0 50 30"><path d="M5,15 L45,15 M10,10 L40,20 M10,20 L40,10" stroke="%23BCAAA4" stroke-width="0.5" stroke-opacity="0.05" fill="none"/></svg>');
+}
+
+/* INFO BOX MODERN */
+.info-box { 
+    background: var(--card-bg); 
+    border-radius: var(--radius); 
+    padding: 0.8rem; 
+    border: 1px solid var(--neon-brown); 
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+    /* Motif batik untuk info box */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60"><g fill="%23BCAAA4" fill-opacity="0.04"><rect x="10" y="10" width="10" height="10" rx="2"/><rect x="40" y="10" width="10" height="10" rx="2"/><rect x="10" y="40" width="10" height="10" rx="2"/><rect x="40" y="40" width="10" height="10" rx="2"/><rect x="25" y="25" width="10" height="10" rx="2"/></g></svg>');
+}
+.info-box::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(to bottom, var(--neon-blue), var(--neon-brown));
+}
+.info-box i { 
+    font-size: 1.4rem; 
+    color: var(--primary); 
+}
+
+/* ESTIMATION BADGES */
+.time-badge { 
+    padding: 1rem; 
+    border-radius: 12px; 
+    color: white; 
+    font-weight: 600;
+    position: relative;
+    overflow: hidden;
+}
+.time-badge::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%, rgba(255,255,255,0.2) 100%);
+}
+.time-tercepat { 
+    background: linear-gradient(135deg, #34D399, #2BBBAD); 
+    box-shadow: 0 4px 15px rgba(52, 211, 153, 0.4);
+}
+.time-terlama { 
+    background: linear-gradient(135deg, #FBBF24, #FFA000); 
+    box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4);
+}
+
+#chart-persentase {
+    height: 300px !important;
+    width: 300px !important;
+    margin: 0 auto;
+}
+
+/* FOOTER */
+.site-footer { 
+    background: linear-gradient(135deg, rgba(179, 229, 252, 0.9) 0%, rgba(215, 204, 200, 0.9) 100%); 
+    border-top: 1px solid var(--neon-blue); 
+    color: var(--text-muted); 
+    position: relative;
+    /* Motif batik untuk footer */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="180" height="60" viewBox="0 0 180 60"><defs><pattern id="footerPattern" patternUnits="userSpaceOnUse" width="90" height="30"><path d="M0,15 L90,15 M15,0 L75,30 M30,0 L60,30 M45,0 L90,15 M60,30 L75,0" stroke="%23BCAAA4" stroke-width="1" stroke-opacity="0.08" fill="none"/></pattern></defs><rect width="180" height="60" fill="url(%23footerPattern)"/></svg>');
+}
+.site-footer::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
+  box-shadow: 0 0 10px var(--neon-blue);
+}
+
+/* INPUTS MODERN */
+.form-control, .form-select { 
+    border-radius: 10px; 
+    border: 1px solid var(--light-brown); 
+    padding: 0.6rem; 
+    background: rgba(255, 255, 255, 0.8);
+    transition: 0.2s;
+    /* Motif batik subtle untuk input */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path d="M5,5 L15,15 M10,5 L15,10 M5,10 L10,15" stroke="%23BCAAA4" stroke-width="0.3" stroke-opacity="0.03" fill="none"/></svg>');
+}
+.form-control:focus, .form-select:focus { 
+    border-color: var(--neon-blue); 
+    box-shadow: 0 0 0 3px rgba(79, 195, 247, 0.2); 
+    background: white;
+}
+
+.custom-activity-card {
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    padding: 0.8rem;
+    margin-bottom: 0.8rem;
+    border: 1px solid var(--neon-brown);
+    position: relative;
+    /* Motif batik untuk custom activity */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><path d="M10,10 L30,30 M20,10 L30,20 M10,20 L20,30" stroke="%23BCAAA4" stroke-width="0.5" stroke-opacity="0.05" fill="none"/></svg>');
+}
+
+.custom-activity-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(to bottom, var(--neon-blue), var(--neon-brown));
+    border-radius: 8px 0 0 8px;
+}
+
+/* PAGE ANIMATION */
+.page.active { display: block; animation: fadeIn 0.25s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+.page { display: none; }
+
+/* Status colors */
+.status-aman { color: #28a745; }
+.status-hati-hati { color: #ffc107; }
+.status-telat { color: #dc3545; }
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .kartu-fresh { padding: 0.8rem; margin: 0 1rem; }
+  .judul-utama { font-size: 1.25rem; }
+  .school-logo { width: 52px; height: 52px; }
+}
+
+@media (max-width: 420px) {
+  .kartu-fresh { padding: 0.6rem; }
+  .judul-utama { font-size: 1.05rem; }
+  .school-logo { width: 44px; height: 44px; }
+}
+
+/* small niceties */
+.btn-sm { padding: 0.35rem 0.6rem; }
