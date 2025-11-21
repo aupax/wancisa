@@ -22,11 +22,101 @@ const NAMA_TRANSPORTASI = {
     'transportasi_umum': 'Transportasi Umum'
 };
 
+// Helper: Add Minutes to Time
+function addMinutes(jam, menit, tambahMenit) {
+    let totalMenit = jam * 60 + menit + tambahMenit;
+    const newJam = Math.floor(totalMenit / 60) % 24;
+    const newMenit = Math.round(totalMenit % 60);
+    return { jam: newJam, menit: newMenit };
+}
+
+// === FUNGSI UNIFIED: Hitung persentase keterlambatan yang konsisten ===
+function calculateUnifiedLatePercentage(jadwal) {
+    // Hitung durasi perjalanan (dalam menit)
+    let kecepatan;
+    if (jadwal.transportasi === 'custom') {
+        kecepatan = jadwal.customKecepatan;
+    } else {
+        kecepatan = KECEPATAN_TRANSPORTASI[jadwal.transportasi];
+    }
+    
+    let waktuPerjalanan = (jadwal.jarak / kecepatan) * 60;
+    
+    // Tambahan waktu berdasarkan tingkat kemacetan
+    const faktorKemacetan = {
+        'sepi': 1.0,
+        'sedang': 1.15,
+        'macet': 1.3
+    };
+    
+    waktuPerjalanan *= faktorKemacetan[jadwal.tingkatKemacetan];
+    
+    // Hitung total aktivitas custom
+    let totalAktivitas = 0;
+    if (jadwal.customActivities) {
+        jadwal.customActivities.forEach(act => totalAktivitas += act.duration);
+    }
+    
+    // Estimasi waktu terlama (perjalanan + semua aktivitas + buffer 20%)
+    const waktuTerlama = waktuPerjalanan + totalAktivitas + (waktuPerjalanan * 0.2);
+    
+    // Parse waktu
+    const [jamBerangkat, menitBerangkat] = jadwal.jamBerangkat.split(':').map(Number);
+    const [jamMasuk, menitMasuk] = jadwal.waktuMasuk.split(':').map(Number);
+    
+    // Hitung waktu tiba terlama
+    const tibaTerlama = addMinutes(jamBerangkat, menitBerangkat, waktuTerlama);
+    
+    // Hitung persentase telat berdasarkan waktu terlama
+    const waktuMasukMenit = jamMasuk * 60 + menitMasuk;
+    const tibaTerlamaMenit = tibaTerlama.jam * 60 + tibaTerlama.menit;
+    
+    let persentaseTelat = 0;
+    
+    // LOGIKA YANG LEBIH REALISTIS:
+    if (tibaTerlamaMenit <= waktuMasukMenit) {
+        // Jika tiba terlama masih sebelum waktu masuk = AMAN (0-30%)
+        const selisihMenit = waktuMasukMenit - tibaTerlamaMenit;
+        // Semakin besar selisih, semakin kecil persentase telat
+        if (selisihMenit >= 30) {
+            persentaseTelat = 0; // Sangat aman
+        } else if (selisihMenit >= 15) {
+            persentaseTelat = 10; // Aman
+        } else if (selisihMenit >= 5) {
+            persentaseTelat = 20; // Cukup aman
+        } else {
+            persentaseTelat = 30; // Hampir telat
+        }
+    } else {
+        // Jika tiba terlama setelah waktu masuk = BERISIKO TELAT
+        const keterlambatanMenit = tibaTerlamaMenit - waktuMasukMenit;
+        
+        if (keterlambatanMenit <= 5) {
+            persentaseTelat = 40; // Risiko kecil
+        } else if (keterlambatanMenit <= 15) {
+            persentaseTelat = 60; // Risiko sedang
+        } else if (keterlambatanMenit <= 30) {
+            persentaseTelat = 80; // Risiko tinggi
+        } else {
+            persentaseTelat = 100; // Pasti telat
+        }
+    }
+    
+    return persentaseTelat;
+}
+
+// === FUNGSI: Hitung persentase keterlambatan untuk jadwal ===
+function calculateLatePercentageForjadwal(jadwal) {
+    return calculateUnifiedLatePercentage(jadwal);
+}
+
 // Inisialisasi
 $(document).ready(function() {
     initializeApp();
     setupEventListeners();
 });
+
+// ... (sisa kode tetap sama, termasuk fungsi createWeeklyChart, loadjadwals, dll.)
 
 // Inisialisasi Aplikasi
 function initializeApp() {
@@ -174,20 +264,46 @@ function loadjadwals() {
 
     if (jadwals.length === 0) {
         jadwalList.html('<p class="text-muted">Belum ada jadwal tersimpan</p>');
+        // Perbarui chart untuk menampilkan keadaan kosong
+        createWeeklyChart();
         return;
     }
 
     jadwals.forEach(function(jadwal) {
+        // Hitung persentase untuk tampilan di card
+        const percentage = calculateUnifiedLatePercentage(jadwal);
+        
+        // Tentukan badge warna berdasarkan persentase - PERBAIKAN LOGIKA
+        let badgeClass = 'bg-success';
+        let statusText = 'Aman';
+        
+        if (percentage > 0 && percentage <= 50) {
+            badgeClass = 'bg-success';
+            statusText = 'Aman';
+        } else if (percentage > 50 && percentage <= 80) {
+            badgeClass = 'bg-warning';
+            statusText = 'Hati-hati';
+        } else if (percentage > 80) {
+            badgeClass = 'bg-danger';
+            statusText = 'Berisiko';
+        }
+        
         // Ubah struktur jadwal card dengan tombol di kanan
         const jadwalCard = $(`
             <div class="jadwal-card">
                 <div class="d-flex justify-content-between align-items-start">
                     <div class="flex-grow-1">
-                        <div class="jadwal-name">${jadwal.name}</div>
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="jadwal-name">${jadwal.name}</div>
+                            <span class="badge ${badgeClass} ms-2">${statusText}</span>
+                        </div>
                         <div class="jadwal-info">
                             <i class="fas fa-route"></i> ${jadwal.jarak} km | 
                             <i class="fas fa-motorcycle"></i> ${NAMA_TRANSPORTASI[jadwal.transportasi]} | 
                             <i class="fas fa-clock"></i> Berangkat ${jadwal.jamBerangkat}
+                        </div>
+                        <div class="jadwal-percentage mt-1">
+                            <small class="text-muted">Estimasi keterlambatan: <strong>${percentage}%</strong></small>
                         </div>
                     </div>
                     <div class="jadwal-actions ms-3">
@@ -227,11 +343,16 @@ function loadjadwals() {
         if (confirm('Yakin ingin menghapus jadwal ini?')) {
             deletejadwal(id);
             loadjadwals();
+            // Perbarui chart setelah menghapus
+            createWeeklyChart();
         }
     });
+    
+    // Perbarui chart dengan data terbaru
+    createWeeklyChart();
 }
 
-// Fungsi baru untuk membuat chart mingguan
+// Fungsi untuk membuat chart berdasarkan data jadwal yang tersimpan
 function createWeeklyChart() {
     const ctx = document.getElementById('weekly-chart');
     
@@ -242,26 +363,54 @@ function createWeeklyChart() {
         window.weeklyChartInstance.destroy();
     }
     
-    // Data dummy untuk contoh (dalam aplikasi nyata, data ini bisa diambil dari localStorage)
-    const days = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
-    const latePercentages = [15, 25, 10, 30, 5, 0, 20]; // Data contoh
+    const jadwals = getjadwals();
+    
+    if (jadwals.length === 0) {
+        // Jika tidak ada jadwal, tampilkan pesan
+        ctx.closest('.card-body').innerHTML = `
+            <p class="text-muted text-center">
+                <i class="fas fa-chart-bar me-2"></i>
+                Belum ada data jadwal untuk ditampilkan
+            </p>
+        `;
+        return;
+    }
+    
+    // Ambil data dari jadwal yang tersimpan
+    const jadwalNames = [];
+    const latePercentages = [];
+    
+    jadwals.forEach(jadwal => {
+        jadwalNames.push(jadwal.name);
+        
+        // Hitung persentase keterlambatan untuk setiap jadwal
+        const percentage = calculateUnifiedLatePercentage(jadwal);
+        latePercentages.push(percentage);
+    });
     
     // Hitung rata-rata
-    const average = latePercentages.reduce((a, b) => a + b, 0) / latePercentages.length;
+    const average = latePercentages.length > 0 
+        ? latePercentages.reduce((a, b) => a + b, 0) / latePercentages.length 
+        : 0;
+    
+    // Warna berdasarkan persentase - SESUAIKAN DENGAN BADGE
+    const backgroundColors = latePercentages.map(percentage => {
+        if (percentage <= 50) return '#28a745'; // Hijau untuk aman (0-50%)
+        if (percentage <= 80) return '#ffc107'; // Kuning untuk hati-hati (51-80%)
+        return '#dc3545'; // Merah untuk berisiko (81-100%)
+    });
     
     // Simpan instance chart di window object
     window.weeklyChartInstance = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: days,
+            labels: jadwalNames,
             datasets: [{
-                label: 'Persentase Telat (%)',
+                label: 'Persentase Keterlambatan (%)',
                 data: latePercentages,
-                backgroundColor: [
-                    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', 
-                    '#9966FF', '#FF9F40', '#C9CBCF'
-                ],
-                borderWidth: 1
+                backgroundColor: backgroundColors,
+                borderWidth: 1,
+                borderRadius: 6
             }]
         },
         options: {
@@ -273,6 +422,13 @@ function createWeeklyChart() {
                 title: {
                     display: true,
                     text: `Rata-rata: ${average.toFixed(1)}%`
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `Keterlambatan: ${context.parsed.y}%`;
+                        }
+                    }
                 }
             },
             scales: {
@@ -281,7 +437,18 @@ function createWeeklyChart() {
                     max: 100,
                     title: {
                         display: true,
-                        text: 'Persentase Telat (%)'
+                        text: 'Persentase Keterlambatan (%)'
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return value + '%';
+                        }
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Nama Jadwal'
                     }
                 }
             }
@@ -422,6 +589,10 @@ function savejadwalAndCalculate() {
     };
     
     currentjadwalId = savejadwal(jadwalData);
+    
+    // Perbarui chart setelah menyimpan jadwal baru
+    createWeeklyChart();
+    
     calculateAndShowResult();
 }
 
@@ -432,6 +603,25 @@ function calculateAndShowResult() {
     
     if (!jadwal) return;
     
+    // === GUNAKAN FUNGSI UNIFIED UNTUK PERSENTASE ===
+    const persentaseTelat = calculateUnifiedLatePercentage(jadwal);
+    
+    // Tentukan status berdasarkan persentase
+    let status = '';
+    let statusClass = '';
+    
+    if (persentaseTelat <= 30) {
+        status = 'Aman! Kemungkinan telat sangat kecil 🎉';
+        statusClass = 'status-aman';
+    } else if (persentaseTelat <= 60) {
+        status = 'Hati-hati! Ada risiko telat ⚠️';
+        statusClass = 'status-hati-hati';
+    } else {
+        status = 'Berisiko telat! Berangkat lebih awal ❌';
+        statusClass = 'status-telat';
+    }
+    
+    // === TETAP HITUNG UNTUK INFO DETAIL DISPLAY ===
     // Hitung durasi perjalanan (dalam menit)
     let kecepatan;
     if (jadwal.transportasi === 'custom') {
@@ -469,33 +659,8 @@ function calculateAndShowResult() {
     const tibaTercepat = addMinutes(jamBerangkat, menitBerangkat, waktuTercepat);
     const tibaTerlama = addMinutes(jamBerangkat, menitBerangkat, waktuTerlama);
     
-    // Hitung persentase telat
-    const waktuMasukMenit = jamMasuk * 60 + menitMasuk;
-    const tibaTercepatMenit = tibaTercepat.jam * 60 + tibaTercepat.menit;
-    const tibaTerlamaMenit = tibaTerlama.jam * 60 + tibaTerlama.menit;
-    
-    let persentaseTelat = 0;
-    let status = '';
-    let statusClass = '';
-    
-    if (tibaTerlamaMenit <= waktuMasukMenit) {
-        // Aman
-        const selisih = waktuMasukMenit - tibaTercepatMenit;
-        persentaseTelat = Math.max(0, Math.round(100 - (selisih / 60) * 20));
-        status = 'Aman! Kemungkinan telat sangat kecil 🎉';
-        statusClass = 'status-aman';
-    } else if (tibaTercepatMenit <= waktuMasukMenit) {
-        // Hati-hati
-        const keterlambatan = tibaTerlamaMenit - waktuMasukMenit;
-        persentaseTelat = Math.min(99, Math.round(50 + (keterlambatan / 30) * 25));
-        status = 'Hati-hati! Ada risiko telat ⚠️';
-        statusClass = 'status-hati-hati';
-    } else {
-        // Telat
-        persentaseTelat = 100;
-        status = 'Telat! Berangkat lebih awal ❌';
-        statusClass = 'status-telat';
-    }
+    // === HAPUS PERHITUNGAN PERSENTASE LAMA ===
+    // (semua perhitungan persentase lama dihapus karena sudah menggunakan fungsi unified)
     
     // Update UI
     $('#result-jadwal-name').text(jadwal.name);
