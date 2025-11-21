@@ -1,0 +1,307 @@
+:root { 
+  --primary: #3A7AFE;
+  --primary-dark: #1F5BDA;
+ --secondary: #9EC9FF;
+--bg: #F4F7FB;
+--card-bg: #FFFFFF;
+--text-dark: #1D1D1D;
+--text-muted: #6B7280;
+--radius: 14px;
+--shadow-sm: 0 4px 12px rgba(0,0,0,0.06);
+--shadow-md: 0 6px 20px rgba(0,0,0,0.08); 
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; }
+
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--text-dark); display:flex; flex-direction:column; min-height:100vh; }
+
+main { flex:1; }
+
+/* POPUP WELCOME STYLES */
+.welcome-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.popup-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.popup-content {
+    position: relative;
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 2rem;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: var(--shadow-md);
+    border: 1px solid #E5E7EB;
+    animation: popupSlideIn 0.4s ease-out;
+}
+
+#start-button {
+    cursor: pointer;
+    position: relative;
+    z-index: 10001;
+}
+
+@keyframes popupSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.popup-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.popup-logo {
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+}
+
+.popup-header h2 {
+    color: var(--primary-dark);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.popup-subtitle {
+    color: var(--text-muted);
+    font-size: 1rem;
+}
+
+.popup-body {
+    margin-bottom: 2rem;
+}
+
+.feature-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    border-radius: 10px;
+    background: var(--bg);
+    transition: 0.2s ease;
+}
+
+.feature-item:hover {
+    transform: translateX(5px);
+    background: #e8f0fe;
+}
+
+.feature-icon {
+    font-size: 1.5rem;
+    color: var(--primary);
+    margin-top: 0.25rem;
+    flex-shrink: 0;
+}
+
+.feature-text h5 {
+    color: var(--text-dark);
+    margin-bottom: 0.25rem;
+    font-size: 0.95rem;
+}
+
+.feature-text p {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-bottom: 0;
+}
+
+.popup-footer {
+    text-align: center;
+}
+
+.btn-start {
+    background: var(--primary) !important;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    transition: 0.3s ease;
+    margin-bottom: 1rem;
+}
+
+.btn-start:hover {
+    background: var(--primary-dark) !important;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.popup-note {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-bottom: 0;
+}
+
+/* Body blur effect when popup is active */
+body.popup-active {
+    overflow: hidden;
+}
+
+body.popup-active main,
+body.popup-active header,
+body.popup-active footer {
+    filter: blur(5px);
+    pointer-events: none;
+    user-select: none;
+}
+
+/* Responsive popup */
+@media (max-width: 576px) {
+    .popup-content {
+        padding: 1.5rem;
+        margin: 1rem;
+    }
+    
+    .popup-logo {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .popup-header h2 {
+        font-size: 1.4rem;
+    }
+    
+    .feature-item {
+        gap: 0.75rem;
+    }
+    
+    .feature-icon {
+        font-size: 1.3rem;
+    }
+}
+
+/* header */
+.site-header { background: var(--card-bg); border-bottom: 1px solid #E5E7EB; box-shadow: var(--shadow-sm); }
+.header-inner { gap: 12px; }
+.school-logo { width: 64px; height: 64px; border-radius: 10px; object-fit: contain; background: transparent; }
+.judul-utama { font-size: 1.6rem; font-weight: 700; color: var(--primary-dark); margin-bottom:0.15rem; }
+.subtitle { font-size: 0.95rem; color: var(--text-muted); }
+
+/* CARD MODERN */
+.kartu-fresh { max-width: 820px; margin: 0 auto; background: var(--card-bg); border-radius: var(--radius); padding: 1rem; border: 1px solid #E5E7EB; box-shadow: var(--shadow-sm); }
+
+.card-header { background: transparent !important; border-bottom: none !important; padding-bottom: 0 !important; }
+.card-header h3 { color: var(--primary-dark); font-weight: 600; }
+
+/* BUTTON MODERN */
+.btn-fresh, .btn-jatim, .btn-primary { background: var(--primary) !important; border: none; padding: 0.6rem 1.2rem; border-radius: 10px; font-weight: 600; color: white !important; transition: 0.2s ease; }
+
+.btn-fresh:hover, .btn-primary:hover { background: var(--primary-dark) !important; transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+/* JADWAL CARD - Updated */
+.jadwal-card { 
+    padding: 0.9rem; 
+    background: var(--card-bg); 
+    border-radius: 12px; 
+    border: 1px solid #E5E7EB; 
+    box-shadow: var(--shadow-sm); 
+    transition: 0.2s ease; 
+    width: 100%; 
+    cursor: pointer;
+}
+.jadwal-card:hover { 
+    transform: translateY(-3px); 
+    box-shadow: var(--shadow-md); 
+    border-color: var(--primary); 
+}
+.jadwal-name { 
+    font-size: 1.05rem; 
+    font-weight: 600; 
+    color: var(--primary-dark); 
+    margin-bottom: 0.3rem;
+}
+.jadwal-info { 
+    color: var(--text-muted); 
+    font-size: 0.9rem; 
+}
+
+/* Jadwal Actions - Updated */
+.jadwal-actions {
+    display: flex;
+    gap: 0.3rem;
+    flex-shrink: 0;
+}
+
+.jadwal-actions .btn {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+}
+
+/* Weekly Chart Styling */
+#weekly-chart {
+    max-height: 250px;
+}
+.jadwal-info { color: var(--text-muted); font-size: 0.9rem; }
+
+/* ACTIVITY ITEMS */
+#result-activities .activity-item { background: var(--bg); border-left: 4px solid var(--primary); border-radius: 8px; padding: 0.75rem; margin-bottom: 0.6rem; }
+
+/* INFO BOX MODERN */
+.info-box { background: var(--card-bg); border-radius: var(--radius); padding: 0.8rem; border: 1px solid #E5E7EB; box-shadow: var(--shadow-sm); }
+.info-box i { font-size: 1.4rem; color: var(--primary); }
+
+/* ESTIMATION BADGES */
+.time-badge { padding: 1rem; border-radius: 12px; color: white; font-weight: 600; }
+.time-tercepat { background: #34D399; }
+.time-terlama { background: #FBBF24; }
+
+/* FOOTER */
+.site-footer { background: var(--card-bg); border-top: 1px solid #E5E7EB; color: var(--text-muted); }
+
+/* INPUTS MODERN */
+.form-control, .form-select { border-radius: 10px; border: 1px solid #D1D5DB; padding: 0.6rem; background: #FFF; }
+.form-control:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(58, 122, 254, 0.12); }
+
+/* PAGE ANIMATION */
+.page.active { display: block; animation: fadeIn 0.25s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+.page { display: none; }
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .kartu-fresh { padding: 0.8rem; margin: 0 1rem; }
+  .judul-utama { font-size: 1.25rem; }
+  .school-logo { width: 52px; height: 52px; }
+}
+
+@media (max-width: 420px) {
+  .kartu-fresh { padding: 0.6rem; }
+  .judul-utama { font-size: 1.05rem; }
+  .school-logo { width: 44px; height: 44px; }
+}
+
+/* small niceties */
+.btn-sm { padding: 0.35rem 0.6rem; }
