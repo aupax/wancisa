@@ -283,7 +283,7 @@ function loadjadwals() {
         } else if (percentage > 50 && percentage <= 80) {
             badgeClass = 'bg-warning';
             statusText = 'Hati-hati';
-        } else if (percentage > 80) {
+        } else if (percentage > 81) {
             badgeClass = 'bg-danger';
             statusText = 'Berisiko';
         }
@@ -611,13 +611,13 @@ function calculateAndShowResult() {
     let statusClass = '';
     
     if (persentaseTelat <= 30) {
-        status = 'Aman! Kemungkinan telat sangat kecil 🎉';
+        status = 'Aman! Kemungkinan telat sangat kecil';
         statusClass = 'status-aman';
     } else if (persentaseTelat <= 60) {
-        status = 'Hati-hati! Ada risiko telat ⚠️';
+        status = 'Hati-hati! Ada risiko telat';
         statusClass = 'status-hati-hati';
     } else {
-        status = 'Berisiko telat! Berangkat lebih awal ❌';
+        status = 'Berisiko telat! Berangkat lebih awal';
         statusClass = 'status-telat';
     }
     
@@ -742,11 +742,11 @@ function createPercentageChart(percentage, statusClass) {
     
     let color = '';
     if (statusClass === 'status-aman') {
-        color = '#28a745';
+        color = 'green';
     } else if (statusClass === 'status-hati-hati') {
-        color = '#ffc107';
+        color = 'yellow';
     } else {
-        color = '#dc3545';
+        color = 'red';
     }
     
     chartInstance = new Chart(ctx, {
